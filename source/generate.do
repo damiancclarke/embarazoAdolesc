@@ -132,9 +132,17 @@ drop _merge
 replace pildora = 0 if pildora==.
 gen pillComuna = pildora>0
 
-encode dom_comuna, gen(cc)
+encode dom_comuna    , gen(cc)
+gen rc = regioncode2008
+keep agno regioncode2008 comuna pillComuna nacimientos population cc rc
 
-reg nacimientos pillComuna i.agno i.cc, cluster(cc)
-reg nacimientos pillComuna i.agno i.cc i.cc#c.agno, cluster(cc)
+lab var agno        "Año de nacimientos"
+lab var region      "Región de nacimiento"
+lab var comuna      "Comuna de nacimiento"
+lab var pillComuna  "Se entregó la pildora AE en esta comuna el año anterior"
+lab var nacimientos "Número de nacimientos a madres de entre 15-19 años"
+lab var population  "Población comunal de 15-19 (F) según INE"
+lab var cc          "Comuna code"
+lab var rc          "Region code"
 
-
+save "$DAT/embarazoAdolescente", replace
