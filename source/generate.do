@@ -16,6 +16,7 @@ cap log close
 global NAC "../data/nacimientos"
 global COM "../data/comunas"
 global POP "../data/poblacion"
+global DAT "../data"
 global LOG "../log"
 
 log using "$LOG/generate.txt", text replace
@@ -69,3 +70,36 @@ foreach y of numlist 2010(1)2012 {
 clear
 append using `f2001' `f2002' `f2003' `f2004' `f2005' `f2006'
 append using `f2007' `f2008' `f2009' `f2010' `f2011' `f2012'
+gen dom_comuna = upper(comuna)
+replace dom_comuna = subinstr(dom_comuna, "é", "E", .)
+replace dom_comuna = subinstr(dom_comuna, "ñ", "Ñ", .)
+replace dom_comuna = subinstr(dom_comuna, "á", "A", .)
+replace dom_comuna = subinstr(dom_comuna, "Á", "A", .)
+replace dom_comuna = subinstr(dom_comuna, "í", "I", .)
+replace dom_comuna = subinstr(dom_comuna, "ó", "O", .)
+replace dom_comuna = subinstr(dom_comuna, "ú", "U", .)
+replace dom_comuna = subinstr(dom_comuna, "ü", "Ü", .)
+replace dom_comuna = "ISLA DE PASCUA" if regexm(dom_comuna, "DE PASCUA")==1
+replace dom_comuna = "PEDRO AGUIRRE CERDA" if regexm(dom_comuna, "AGUIRRE CERDA")
+
+save "$DAT/embarazoAdolescente", replace
+
+*-------------------------------------------------------------------------------
+*--- (3) Poblacion
+*-------------------------------------------------------------------------------
+insheet using "$POP/pop1519.csv", comma clear
+keep dom_comuna d2001-d2012
+foreach y of numlist 2001 2002 2003 {
+    replace d`y'="" if d`y'=="NA"
+    destring d`y', replace
+}
+
+reshape long d, i(dom_comuna) j(agno)
+rename d population
+
+replace dom_comuna = "ISLA DE PASCUA" if regexm(dom_comuna, "DE PASCUA")==1
+replace dom_comuna = "PEDRO AGUIRRE CERDA" if regexm(dom_comuna, "AGUIRRE CERDA")
+
+merge 1:m dom_comuna agno using "$DAT/embarazoAdolescente"
+gen teenPreg = nacimientos/population
+drop _merge
