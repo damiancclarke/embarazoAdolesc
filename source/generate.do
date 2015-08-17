@@ -103,3 +103,38 @@ replace dom_comuna = "PEDRO AGUIRRE CERDA" if regexm(dom_comuna, "AGUIRRE CERDA"
 merge 1:m dom_comuna agno using "$DAT/embarazoAdolescente"
 gen teenPreg = nacimientos/population
 drop _merge
+save "$DAT/embarazoAdolescente", replace
+
+*-------------------------------------------------------------------------------
+*--- (4) Pill
+*-------------------------------------------------------------------------------
+insheet using "$DAT/pildora/raw.csv", delim(";") clear
+collapse (sum) cantidad, by(comuna region agno)
+rename cantidad pildora
+
+gen dom_comuna = upper(comuna)
+replace dom_comuna = subinstr(dom_comuna, "é", "E", .)
+replace dom_comuna = subinstr(dom_comuna, "ñ", "Ñ", .)
+replace dom_comuna = subinstr(dom_comuna, "á", "A", .)
+replace dom_comuna = subinstr(dom_comuna, "Á", "A", .)
+replace dom_comuna = subinstr(dom_comuna, "í", "I", .)
+replace dom_comuna = subinstr(dom_comuna, "ó", "O", .)
+replace dom_comuna = subinstr(dom_comuna, "ú", "U", .)
+replace dom_comuna = subinstr(dom_comuna, "ü", "Ü", .)
+replace dom_comuna = "CONCON" if dom_comuna == "CON CON"
+
+replace agno = agno+1
+drop if agno==2013
+merge 1:1 agno dom_comuna using "$DAT/embarazoAdolescente"
+
+
+drop _merge
+replace pildora = 0 if pildora==.
+gen pillComuna = pildora>0
+
+encode dom_comuna, gen(cc)
+
+reg nacimientos pillComuna i.agno i.cc, cluster(cc)
+reg nacimientos pillComuna i.agno i.cc i.cc#c.agno, cluster(cc)
+
+
