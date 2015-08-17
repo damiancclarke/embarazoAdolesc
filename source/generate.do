@@ -26,28 +26,46 @@ log using "$LOG/generate.txt", text replace
 *-------------------------------------------------------------------------------
 foreach y of numlist 2001(1)2006 {
     use "$NAC/NAC`y'"
+    keep if edad_m>=15&edad_m<20
+    gen nacimientos = 1
+    collapse (sum) nacimientos, by(comuna)
     rename comuna comunacode20002008
     merge m:1 comunacode20002008 using "$COM/comunacodes"
+    replace nacimientos = 0 if nacimientos == .
     drop v20 _merge
+    gen agno = `y'
     tempfile f`y'
     save `f`y''
 }
 
 foreach y of numlist 2007(1)2009 {
     use "$NAC/NAC`y'"
+    keep if edad_m>=15&edad_m<20
+    gen nacimientos = 1
+    collapse (sum) nacimientos, by(comuna)
     rename comuna comunacode20082010
     merge m:1 comunacode20082010 using "$COM/comunacodes"
+    replace nacimientos = 0 if nacimientos == .
     drop v20 _merge
+    gen agno = `y'
     tempfile f`y'
     save `f`y''
 }
 
 foreach y of numlist 2010(1)2012 {
     use "$NAC/NAC`y'"
+    keep if edad_m>=15&edad_m<20
+    gen nacimientos = 1
+    collapse (sum) nacimientos, by(comuna)
     rename comuna comunacode2010
     merge m:1 comunacode2010 using "$COM/comunacodes"
+    replace nacimientos = 0 if nacimientos == .
     drop v20 _merge
+    gen agno = `y'
     tempfile f`y'
     save `f`y''
 }
 
+clear
+append using `f2001' `f2002' `f2003' `f2004' `f2005' `f2006'
+append using `f2007' `f2008' `f2009' `f2010' `f2011' `f2012'
