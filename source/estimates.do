@@ -24,18 +24,33 @@ log using "$LOG/estimates.txt", text replace
 cap mkdir $OUT
 
 use "$DAT/embarazoAdolescente"
-
+keep if agno>=2005
 *-------------------------------------------------------------------------------
 *--- (2a) basic regression
 *-------------------------------------------------------------------------------
-*reg nacimientos pillComuna i.agno i.cc, cluster(cc)
-*reg nacimientos pillComuna i.agno i.cc i.cc#c.agno, cluster(cc)
+eststo: reg nacimientos pillComuna  i.agno i.cc                , cluster(cc)
+eststo: reg nacimientos pillComuna  i.agno i.cc i.cc#c.agno    , cluster(cc)
+eststo: reg nacimientos pillComunaA i.agno i.cc                , cluster(cc)
+eststo: reg nacimientos pillComunaA i.agno i.cc i.cc#c.agno    , cluster(cc)
+eststo: reg nacimientos pillComuna  i.agno i.cc [fw=population], cluster(cc)
+eststo: reg nacimientos pillComunaA i.agno i.cc [fw=population], cluster(cc)
 
-
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6, stats (r2 N, fmt(%9.2f %9.0g)
+                                  label(R-squared Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
+title("Entrega de la Píldora y Nacimientos Adolescentes")
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) ))
+keep(pillComuna pillComunaAdolesc);
+#delimit cr
+exit
 *-------------------------------------------------------------------------------
 *--- (2b) Event study
 *-------------------------------------------------------------------------------
-bys comuna (agno): gen pill_n0 = pillC[_n-0]==1
+use "$DAT/embarazoAdolescente"
+keep if agno>2005
+
+ bys comuna (agno): gen pill_n0 = pillC[_n-0]==1
 bys comuna (agno): gen pill_n1 = pillC[_n-1]==1
 bys comuna (agno): gen pill_n2 = pillC[_n-2]==1
 
